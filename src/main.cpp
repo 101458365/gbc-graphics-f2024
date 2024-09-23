@@ -23,6 +23,7 @@ bool IsKeyDown(int key);
 bool IsKeyUp(int key);
 bool IsKeyPressed(int key);
 
+
 int main(void)
 {
     // Lines 20-40 are all window creation. You can ignore this if you want ;)
@@ -86,9 +87,6 @@ int main(void)
     // *** Everything is just data and behaviour ***
     // *** vao & vbo describe data, shaders describe behaviour ***
 
-    // Fetch handles to uniform ("constant") variables.
-    // OpenGL handles are like addresses (&) in c++ -- they tell us the location of our data on the GPU.
-    // In the case of uniforms, we need to know their handle (location) before we can use them!
     GLint u_world = glGetUniformLocation(shaderUniformColor, "u_world");
     GLint u_color = glGetUniformLocation(shaderUniformColor, "u_color");
     GLint u_intensity = glGetUniformLocation(shaderUniformColor, "u_intensity");
@@ -104,21 +102,14 @@ int main(void)
 
         float time = glfwGetTime();
         Matrix world = MatrixIdentity();
-        float st = sinf(time);
-        float ct = cosf(time);
 
         switch (object + 1)
         {
-        // Hint: Change the colour to white 
+        // Hint: Change the colour to white
         case 1:
-            // We can modify the world matrix that transforms our vertices the same way we modify colours.
-            // This is because they are "uniform" variables meaning they're constant across our shader program!
-            world = Scale(ct, st, 0.0f) *
-                RotateZ(100.0f * time * DEG2RAD) *
-                Translate(0.0f, sinf(time), 0.0f);
             glUseProgram(shaderUniformColor);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v);
-            glUniform3f(u_color, 1.0f, 0.0f, 0.0f);
+            glUniform3f(u_color, 1.0f, 1.0f, 1.0f);
             glUniform1f(u_intensity, 1.0f);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
@@ -126,25 +117,26 @@ int main(void)
         // Hint: Switch the shader to colour based on vertex positions
         // If you get errors in the console, comment out all unused uniforms
         case 2:
-            glUseProgram(shaderUniformColor);
-            glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v);
-            glUniform3f(u_color, 0.0f, 1.0f, 0.0f);
-            glUniform1f(u_intensity, 1.0f);
+            glUseProgram(shaderVertexColor);
+           // glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v); // this was giving me error took some time ;-;
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
 
         // Hint: Make intensity change from 0 to 1 using a periodic function (sin or cos)
         case 3:
+        {
             glUseProgram(shaderUniformColor);
+            float intensity = (sin(time) + 1.0f) / 2.0f;
             glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v);
             glUniform3f(u_color, 0.0f, 0.0f, 1.0f);
-            glUniform1f(u_intensity, 1.0f);
+            glUniform1f(u_intensity, intensity);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
-
+        }
         // Hint: Use the Translate function
         case 4:
             glUseProgram(shaderUniformColor);
+            world = Translate(sin(time) * 0.5f, 0.0f, 0.0f);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v);
             glUniform3f(u_color, 1.0f, 0.0f, 1.0f);
             glUniform1f(u_intensity, 1.0f);
@@ -154,6 +146,7 @@ int main(void)
         // Hint: Use the RotateZ function
         case 5:
             glUseProgram(shaderUniformColor);
+            world = RotateZ(time);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, ToFloat16(world).v);
             glUniform3f(u_color, 0.0f, 1.0f, 1.0f);
             glUniform1f(u_intensity, 1.0f);
